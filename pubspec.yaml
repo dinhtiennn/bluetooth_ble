@@ -7,8 +7,14 @@ environment:
   flutter: '>=1.17.0'
 
 dependencies:
-  psdk_bluetooth_traits: ^0.1.4
-  psdk_device_adapter: ^0.1.4
+  bluetooth_traits:
+    git:
+      url: https://github.com/dinhtiennn/bluetooth_traits.git
+      branch: main
+  device_adapter:
+    git:
+      url: https://github.com/dinhtiennn/device_adapter.git
+      branch: main
   collection: ^1.19.1
   flutter_blue_plus: ^2.1.0
 
