@@ -177,8 +177,9 @@ class _Helpers {
           if (actual.endsWith(target)) return true;
           break;
         case AllowRule.regex:
-          if (RegExp(rule.uuid, caseSensitive: false).hasMatch(serviceUuid))
+          if (RegExp(rule.uuid, caseSensitive: false).hasMatch(serviceUuid)) {
             return true;
+          }
           break;
       }
     }
@@ -215,8 +216,9 @@ class _Helpers {
 
         if (wantedChar != null && cu == wantedChar) {
           if (_isWritable(c) && matchedWritable == null) matchedWritable = c;
-          if (_isNotifiable(c) && matchedNotifiable == null)
+          if (_isNotifiable(c) && matchedNotifiable == null) {
             matchedNotifiable = c;
+          }
         }
       }
     }

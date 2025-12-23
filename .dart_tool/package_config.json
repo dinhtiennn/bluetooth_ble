@@ -3,15 +3,15 @@
   "packages": [
     {
       "name": "_fe_analyzer_shared",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/_fe_analyzer_shared-92.0.0",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/_fe_analyzer_shared-88.0.0",
       "packageUri": "lib/",
-      "languageVersion": "3.9"
+      "languageVersion": "3.7"
     },
     {
       "name": "analyzer",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/analyzer-9.0.0",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/analyzer-8.1.1",
       "packageUri": "lib/",
-      "languageVersion": "3.9"
+      "languageVersion": "3.7"
     },
     {
       "name": "args",
@@ -93,9 +93,9 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///C:/Users/dinht/fvm/versions/3.35.6/packages/flutter",
+      "rootUri": "file:///C:/Users/dinht/fvm/default/packages/flutter",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.7"
     },
     {
       "name": "flutter_blue_plus",
@@ -141,9 +141,9 @@
     },
     {
       "name": "flutter_web_plugins",
-      "rootUri": "file:///C:/Users/dinht/fvm/versions/3.35.6/packages/flutter_web_plugins",
+      "rootUri": "file:///C:/Users/dinht/fvm/default/packages/flutter_web_plugins",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.7"
     },
     {
       "name": "frontend_server_client",
@@ -231,9 +231,9 @@
     },
     {
       "name": "petitparser",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/petitparser-7.0.1",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/petitparser-6.1.0",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.5"
     },
     {
       "name": "pool",
@@ -291,9 +291,9 @@
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///C:/Users/dinht/fvm/versions/3.35.6/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///C:/Users/dinht/fvm/default/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.7"
     },
     {
       "name": "source_map_stack_trace",
@@ -363,9 +363,9 @@
     },
     {
       "name": "vector_math",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.2.0",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.1.4",
       "packageUri": "lib/",
-      "languageVersion": "3.1"
+      "languageVersion": "2.14"
     },
     {
       "name": "vm_service",
@@ -405,9 +405,9 @@
     },
     {
       "name": "xml",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/xml-6.6.1",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/xml-6.5.0",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.2"
     },
     {
       "name": "yaml",
@@ -416,15 +416,16 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "bluetooth_ble",
+      "name": "psdk_bluetooth_ble",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }
   ],
+  "generated": "2025-12-23T01:44:50.616446Z",
   "generator": "pub",
-  "generatorVersion": "3.9.2",
-  "flutterRoot": "file:///C:/Users/dinht/fvm/versions/3.35.6",
-  "flutterVersion": "3.35.6",
+  "generatorVersion": "3.7.2",
+  "flutterRoot": "file:///C:/Users/dinht/fvm/default",
+  "flutterVersion": "3.29.2",
   "pubCache": "file:///C:/Users/dinht/AppData/Local/Pub/Cache"
 }
