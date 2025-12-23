@@ -93,9 +93,9 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///C:/Users/dinht/fvm/default/packages/flutter",
+      "rootUri": "file:///C:/Users/dinht/fvm/versions/3.35.6/packages/flutter",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.8"
     },
     {
       "name": "flutter_web_bluetooth",
@@ -237,9 +237,9 @@
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///C:/Users/dinht/fvm/default/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///C:/Users/dinht/fvm/versions/3.35.6/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.8"
     },
     {
       "name": "source_map_stack_trace",
@@ -315,9 +315,9 @@
     },
     {
       "name": "vector_math",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.1.4",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.2.0",
       "packageUri": "lib/",
-      "languageVersion": "2.14"
+      "languageVersion": "3.1"
     },
     {
       "name": "vm_service",
@@ -374,10 +374,9 @@
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2025-12-23T08:47:29.998258Z",
   "generator": "pub",
-  "generatorVersion": "3.7.2",
-  "flutterRoot": "file:///C:/Users/dinht/fvm/default",
-  "flutterVersion": "3.29.2",
+  "generatorVersion": "3.9.2",
+  "flutterRoot": "file:///C:/Users/dinht/fvm/versions/3.35.6",
+  "flutterVersion": "3.35.6",
   "pubCache": "file:///C:/Users/dinht/AppData/Local/Pub/Cache"
 }
