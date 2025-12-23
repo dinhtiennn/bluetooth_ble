@@ -5,11 +5,13 @@ library bluetooth_ble;
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:psdk_bluetooth_traits/psdk_bluetooth_traits.dart';
-import 'package:psdk_device_adapter/psdk_device_adapter.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import 'src/types.dart';
+
+part 'src/adapter_types.dart';
+part 'src/traits.dart';
+part 'src/fluetooth_types.dart';
 
 part 'src/connected.dart';
 part 'src/device.dart';

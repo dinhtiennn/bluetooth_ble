@@ -98,52 +98,10 @@
       "languageVersion": "3.7"
     },
     {
-      "name": "flutter_blue_plus",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_blue_plus-2.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "flutter_blue_plus_android",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_blue_plus_android-8.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "flutter_blue_plus_darwin",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_blue_plus_darwin-8.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "flutter_blue_plus_linux",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_blue_plus_linux-8.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "flutter_blue_plus_platform_interface",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_blue_plus_platform_interface-8.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "flutter_blue_plus_web",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_blue_plus_web-8.1.0",
+      "name": "flutter_web_bluetooth",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_web_bluetooth-1.1.0",
       "packageUri": "lib/",
       "languageVersion": "3.3"
-    },
-    {
-      "name": "flutter_blue_plus_winrt",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_blue_plus_winrt-0.0.7",
-      "packageUri": "lib/",
-      "languageVersion": "3.0"
-    },
-    {
-      "name": "flutter_web_plugins",
-      "rootUri": "file:///C:/Users/dinht/fvm/default/packages/flutter_web_plugins",
-      "packageUri": "lib/",
-      "languageVersion": "3.7"
     },
     {
       "name": "frontend_server_client",
@@ -236,34 +194,22 @@
       "languageVersion": "3.5"
     },
     {
+      "name": "plugin_platform_interface",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/plugin_platform_interface-2.1.8",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "pool",
       "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/pool-1.5.2",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
     {
-      "name": "psdk_bluetooth_traits",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/psdk_bluetooth_traits-0.1.4",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "psdk_device_adapter",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/psdk_device_adapter-0.1.4",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
       "name": "pub_semver",
       "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/pub_semver-2.2.0",
       "packageUri": "lib/",
       "languageVersion": "3.4"
-    },
-    {
-      "name": "rxdart",
-      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/rxdart-0.28.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
     },
     {
       "name": "shelf",
@@ -362,6 +308,12 @@
       "languageVersion": "3.5"
     },
     {
+      "name": "universal_ble",
+      "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/universal_ble-1.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
       "name": "vector_math",
       "rootUri": "file:///C:/Users/dinht/AppData/Local/Pub/Cache/hosted/pub.dev/vector_math-2.1.4",
       "packageUri": "lib/",
@@ -422,7 +374,7 @@
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2025-12-23T01:50:57.227617Z",
+  "generated": "2025-12-23T08:47:29.998258Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///C:/Users/dinht/fvm/default",

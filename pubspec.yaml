@@ -7,10 +7,10 @@ environment:
   flutter: '>=1.17.0'
 
 dependencies:
-  psdk_bluetooth_traits: ^0.1.4
-  psdk_device_adapter: ^0.1.4
   collection: ^1.19.1
-  flutter_blue_plus: ^2.1.0
+  flutter:
+    sdk: flutter
+  universal_ble: ^1.0.0
 
 dev_dependencies:
   lints: ^5.1.1

@@ -1,14 +1,14 @@
 part of 'package:bluetooth_ble/bluetooth_ble.dart';
 
 /// ble bluetooth provider
-class BLEBluetooth
-    extends Fluetooth<FlutterBluePlusProvider, BLEBluetoothDevice> {
-  final FlutterBluePlusProvider _provider = const FlutterBluePlusProvider();
+class BLEBluetooth extends Fluetooth<UniversalBleProvider, BLEBluetoothDevice> {
+  final UniversalBleProvider _provider = const UniversalBleProvider();
   final _discoveryController = StreamController<BLEBluetoothDevice>.broadcast();
   BLEConnectedDevice? _connectedDevice;
   final Set<String> _notifiedDeviceIds = <String>{};
   static BLEBluetooth? _bleBluetooth;
-  StreamSubscription<List<ScanResult>>? _scanSubscription;
+  StreamSubscription<BleDevice>? _scanSubscription;
+  final bool _debugLog = true;
 
   ///唯一值使用mac地址还是uuid
   bool useMac = true;
@@ -34,19 +34,20 @@ class BLEBluetooth
   }
 
   @override
-  FlutterBluePlusProvider origin() {
+  UniversalBleProvider origin() {
     return _provider;
   }
 
   @override
   Future<bool> availableBluetooth() async {
-    return await FlutterBluePlus.isSupported;
+    final state = await UniversalBle.getBluetoothAvailabilityState();
+    return state == AvailabilityState.poweredOn;
   }
 
   @override
   Future<bool> bluetoothIsEnabled() async {
-    final state = await FlutterBluePlus.adapterState.first;
-    return state == BluetoothAdapterState.on;
+    final state = await UniversalBle.getBluetoothAvailabilityState();
+    return state == AvailabilityState.poweredOn;
   }
 
   @override
@@ -56,7 +57,11 @@ class BLEBluetooth
 
   @override
   Future<bool> isDiscovery() async {
-    return _scanSubscription != null;
+    try {
+      return await UniversalBle.isScanning();
+    } catch (_) {
+      return _scanSubscription != null;
+    }
   }
 
   @override
@@ -77,23 +82,43 @@ class BLEBluetooth
     _notifiedDeviceIds.clear();
     await stopDiscovery();
 
-    _scanSubscription = FlutterBluePlus.scanResults.listen((results) {
-      for (final r in results) {
-        final device = r.device;
-        final id = device.remoteId.str;
-        if (_notifiedDeviceIds.contains(id)) continue;
-        _notifiedDeviceIds.add(id);
-        _discoveryController.add(_Helpers.fromBleScanResult(r, useMac));
+    // Ensure permissions (Android/iOS); on desktop/web it will succeed/no-op.
+    final hasPerm =
+        await UniversalBle.hasPermissions(withAndroidFineLocation: true);
+    if (!hasPerm) {
+      await UniversalBle.requestPermissions(withAndroidFineLocation: true);
+    }
+
+    if (_debugLog) {
+      print('[bluetooth-ble] startDiscovery timeout=$timeout');
+    }
+
+    _scanSubscription = UniversalBle.scanStream.listen((d) {
+      final id = d.deviceId;
+      if (_notifiedDeviceIds.contains(id)) return;
+      _notifiedDeviceIds.add(id);
+      if (_debugLog) {
+        print(
+          '[bluetooth-ble] found name="${d.name}" id=$id rssi=${d.rssi}',
+        );
       }
+      _discoveryController.add(_Helpers.fromBleDevice(d));
     });
 
-    // start scan (flutter_blue_plus will auto-stop on timeout)
-    await FlutterBluePlus.startScan(timeout: timeout);
+    await UniversalBle.startScan();
+
+    // universal_ble does not auto-stop on timeout: stop manually
+    Timer(timeout, () {
+      // ignore: discarded_futures
+      stopDiscovery();
+    });
   }
 
   @override
   Future<void> stopDiscovery() async {
-    await FlutterBluePlus.stopScan();
+    try {
+      await UniversalBle.stopScan();
+    } catch (_) {}
     await _scanSubscription?.cancel();
     _scanSubscription = null;
   }
@@ -106,20 +131,25 @@ class BLEBluetooth
     await stopDiscovery();
 
     final originDevice = device.origin;
-    try {
-      await originDevice.connect(
-        license: License.free,
-        timeout: timeout,
-      );
-    } catch (e) {
-      // already connected or connect failed
-      final state = await originDevice.connectionState.first;
-      if (state != BluetoothConnectionState.connected) {
-        throw Exception("[bluetooth-ble] the printer connect fail: $e");
-      }
+    final deviceId = originDevice.deviceId;
+    if (_debugLog) {
+      print('[bluetooth-ble] connect name="${device.name}" id=$deviceId');
     }
 
-    final services = await originDevice.discoverServices();
+    await UniversalBle.connect(deviceId, timeout: timeout);
+
+    final services = await UniversalBle.discoverServices(deviceId);
+    if (_debugLog) {
+      print('[bluetooth-ble] services count=${services.length}');
+      for (final s in services) {
+        print('[bluetooth-ble]  service ${s.uuid}');
+        for (final c in s.characteristics) {
+          // Avoid using enum.name (requires Dart >= 2.15)
+          final props = c.properties.map((e) => e.toString()).join(',');
+          print('[bluetooth-ble]   char ${c.uuid} props=[$props]');
+        }
+      }
+    }
     final selection = _Helpers.selectCharacteristics(
       services,
       allowedServices: _allowedServices,
@@ -127,19 +157,25 @@ class BLEBluetooth
       allowDetectDifferentCharacteristic: _allowDetectDifferentCharacteristic,
     );
 
-    final writeChar = selection.writeCharacteristic;
-    final notifyChar = selection.notifyCharacteristic;
+    final write = selection.write;
+    final notify = selection.notify;
+    if (_debugLog) {
+      print(
+        '[bluetooth-ble] selected write=${write?.characteristic.uuid}@${write?.serviceUuid} '
+        'notify=${notify?.characteristic.uuid}@${notify?.serviceUuid}',
+      );
+    }
 
-    if (writeChar == null && notifyChar == null) {
+    if (write == null && notify == null) {
       throw Exception(
           "[bluetooth-ble] no writable/notify characteristic found");
     }
 
     _connectedDevice = BLEConnectedDevice(
-      device: originDevice,
+      deviceId: deviceId,
       connectedDevice: device,
-      writeCharacteristic: writeChar,
-      notifyCharacteristic: notifyChar,
+      write: write,
+      notify: notify,
     );
 
     return _connectedDevice!;
@@ -149,14 +185,13 @@ class BLEBluetooth
 class _Helpers {
   static String _norm(String s) => s.toLowerCase().replaceAll('-', '');
 
-  static BLEBluetoothDevice fromBleScanResult(ScanResult result, bool useMac) {
-    final device = result.device;
-    final id = device.remoteId.str;
+  static BLEBluetoothDevice fromBleDevice(BleDevice device) {
+    final id = device.deviceId;
     return BLEBluetoothDevice(
       origin: device,
-      name: device.platformName,
+      name: device.name,
       mac: id,
-      rssi: result.rssi,
+      rssi: device.rssi,
     );
   }
 
@@ -186,14 +221,16 @@ class _Helpers {
     return false;
   }
 
-  static bool _isWritable(BluetoothCharacteristic c) =>
-      c.properties.write || c.properties.writeWithoutResponse;
+  static bool _isWritable(BleCharacteristic c) =>
+      c.properties.contains(CharacteristicProperty.write) ||
+      c.properties.contains(CharacteristicProperty.writeWithoutResponse);
 
-  static bool _isNotifiable(BluetoothCharacteristic c) =>
-      c.properties.notify || c.properties.indicate;
+  static bool _isNotifiable(BleCharacteristic c) =>
+      c.properties.contains(CharacteristicProperty.notify) ||
+      c.properties.contains(CharacteristicProperty.indicate);
 
   static _CharacteristicSelection selectCharacteristics(
-    List<BluetoothService> services, {
+    List<BleService> services, {
     required List<AllowService>? allowedServices,
     required String? allowedCharacteristic,
     required bool allowDetectDifferentCharacteristic,
@@ -201,23 +238,29 @@ class _Helpers {
     final wantedChar =
         allowedCharacteristic == null ? null : _norm(allowedCharacteristic);
 
-    BluetoothCharacteristic? firstWritable;
-    BluetoothCharacteristic? firstNotifiable;
-    BluetoothCharacteristic? matchedWritable;
-    BluetoothCharacteristic? matchedNotifiable;
+    BleQualifiedCharacteristic? firstWritable;
+    BleQualifiedCharacteristic? firstNotifiable;
+    BleQualifiedCharacteristic? matchedWritable;
+    BleQualifiedCharacteristic? matchedNotifiable;
 
     for (final s in services) {
-      final serviceUuid = s.uuid.str;
+      final serviceUuid = s.uuid;
       if (!_serviceAllowed(serviceUuid, allowedServices)) continue;
       for (final c in s.characteristics) {
-        final cu = _norm(c.uuid.str);
-        if (_isWritable(c) && firstWritable == null) firstWritable = c;
-        if (_isNotifiable(c) && firstNotifiable == null) firstNotifiable = c;
+        final cu = _norm(c.uuid);
+        if (_isWritable(c) && firstWritable == null) {
+          firstWritable = BleQualifiedCharacteristic(serviceUuid, c);
+        }
+        if (_isNotifiable(c) && firstNotifiable == null) {
+          firstNotifiable = BleQualifiedCharacteristic(serviceUuid, c);
+        }
 
         if (wantedChar != null && cu == wantedChar) {
-          if (_isWritable(c) && matchedWritable == null) matchedWritable = c;
+          if (_isWritable(c) && matchedWritable == null) {
+            matchedWritable = BleQualifiedCharacteristic(serviceUuid, c);
+          }
           if (_isNotifiable(c) && matchedNotifiable == null) {
-            matchedNotifiable = c;
+            matchedNotifiable = BleQualifiedCharacteristic(serviceUuid, c);
           }
         }
       }
@@ -227,27 +270,32 @@ class _Helpers {
       final w = matchedWritable ??
           (allowDetectDifferentCharacteristic ? firstWritable : null);
       final n = matchedNotifiable ?? firstNotifiable;
-      return _CharacteristicSelection(
-          writeCharacteristic: w, notifyCharacteristic: n);
+      return _CharacteristicSelection(write: w, notify: n);
     }
 
     return _CharacteristicSelection(
-      writeCharacteristic: firstWritable,
-      notifyCharacteristic: firstNotifiable ?? firstWritable,
+      write: firstWritable,
+      notify: firstNotifiable ?? firstWritable,
     );
   }
 }
 
-class FlutterBluePlusProvider {
-  const FlutterBluePlusProvider();
+class UniversalBleProvider {
+  const UniversalBleProvider();
 }
 
 class _CharacteristicSelection {
-  final BluetoothCharacteristic? writeCharacteristic;
-  final BluetoothCharacteristic? notifyCharacteristic;
+  final BleQualifiedCharacteristic? write;
+  final BleQualifiedCharacteristic? notify;
 
   const _CharacteristicSelection({
-    required this.writeCharacteristic,
-    required this.notifyCharacteristic,
+    required this.write,
+    required this.notify,
   });
+}
+
+class BleQualifiedCharacteristic {
+  final String serviceUuid;
+  final BleCharacteristic characteristic;
+  const BleQualifiedCharacteristic(this.serviceUuid, this.characteristic);
 }
