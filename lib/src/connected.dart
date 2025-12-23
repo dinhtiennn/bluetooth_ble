@@ -1,4 +1,4 @@
-part of 'package:psdk_bluetooth_ble/psdk_bluetooth_ble.dart';
+part of 'package:bluetooth_ble/bluetooth_ble.dart';
 
 /// BLE connected device
 class BLEConnectedDevice extends ConnectedDevice {
@@ -25,8 +25,9 @@ class BLEConnectedDevice extends ConnectedDevice {
 
     _state = ConnectionState.connected;
     _connectionSubscription = _device!.connectionState.listen((s) {
-      _state =
-          s == BluetoothConnectionState.connected ? ConnectionState.connected : ConnectionState.disconnected;
+      _state = s == BluetoothConnectionState.connected
+          ? ConnectionState.connected
+          : ConnectionState.disconnected;
     });
 
     final c = _notifyCharacteristic;

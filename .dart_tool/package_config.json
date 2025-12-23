@@ -416,13 +416,13 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "psdk_bluetooth_ble",
+      "name": "bluetooth_ble",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2025-12-23T01:44:50.616446Z",
+  "generated": "2025-12-23T01:50:57.227617Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///C:/Users/dinht/fvm/default",

@@ -1,4 +1,4 @@
-part of 'package:psdk_bluetooth_ble/psdk_bluetooth_ble.dart';
+part of 'package:bluetooth_ble/bluetooth_ble.dart';
 
 /// ble bluetooth provider
 class BLEBluetooth
