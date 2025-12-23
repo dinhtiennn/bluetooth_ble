@@ -1,4 +1,4 @@
-name: psdk_bluetooth_ble
+name: bluetooth_ble
 description: BLE bluetooth device
 version: 0.1.4
 repository: https://github.com/prtmax/psdk-examples
