@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:psdk_bluetooth_ble/psdk_bluetooth_ble.dart';
-import 'package:psdk_device_adapter/psdk_device_adapter.dart';
 
 /// BLE connected device
 class BLEConnectedDevice extends ConnectedDevice {
