@@ -24,14 +24,30 @@ class BLEConnectedDevice extends ConnectedDevice<BLEBluetoothDevice> {
 
     _state = ConnectionState.connected;
 
-    _connectionSubscription = UniversalBle.connectionStream(_deviceId).listen((isConnected) {
-      _state = isConnected ? ConnectionState.connected : ConnectionState.disconnected;
+    BluetoothBleLog.d(
+      'connectedDevice init id=$_deviceId name="${connectedDevice.name}" '
+      'write=${_write?.characteristic.uuid}@${_write?.serviceUuid} '
+      'notify=${_notify?.characteristic.uuid}@${_notify?.serviceUuid}',
+    );
+
+    _connectionSubscription =
+        UniversalBle.connectionStream(_deviceId).listen((isConnected) {
+      _state = isConnected
+          ? ConnectionState.connected
+          : ConnectionState.disconnected;
+      BluetoothBleLog.d(
+          'connectionStream id=$_deviceId connected=$isConnected');
+    }, onError: (e, st) {
+      BluetoothBleLog.d('connectionStream error=$e');
     });
 
     final n = _notify;
     if (n != null) {
       // subscribe to notifications/indications if supported
       if (n.characteristic.properties.contains(CharacteristicProperty.notify)) {
+        BluetoothBleLog.d(
+          'subscribeNotifications id=$_deviceId service=${n.serviceUuid} char=${n.characteristic.uuid}',
+        );
         UniversalBle.subscribeNotifications(
           _deviceId,
           n.serviceUuid,
@@ -39,6 +55,9 @@ class BLEConnectedDevice extends ConnectedDevice<BLEBluetoothDevice> {
         );
       } else if (n.characteristic.properties
           .contains(CharacteristicProperty.indicate)) {
+        BluetoothBleLog.d(
+          'subscribeIndications id=$_deviceId service=${n.serviceUuid} char=${n.characteristic.uuid}',
+        );
         UniversalBle.subscribeIndications(
           _deviceId,
           n.serviceUuid,
@@ -49,8 +68,15 @@ class BLEConnectedDevice extends ConnectedDevice<BLEBluetoothDevice> {
         _deviceId,
         n.characteristic.uuid,
       ).listen((data) {
+        BluetoothBleLog.d(
+          'notify rx id=$_deviceId len=${data.length} hex=${BluetoothBleLog.hexPreview(data)}',
+        );
         _readController.add(data);
+      }, onError: (e, st) {
+        BluetoothBleLog.d('notify stream error=$e');
       });
+    } else {
+      BluetoothBleLog.d('no notify characteristic selected');
     }
   }
 
@@ -76,6 +102,7 @@ class BLEConnectedDevice extends ConnectedDevice<BLEBluetoothDevice> {
 
   @override
   Future<void> disconnect() async {
+    BluetoothBleLog.d('disconnect id=$_deviceId');
     await _notifySubscription?.cancel();
     _notifySubscription = null;
     await _connectionSubscription?.cancel();
@@ -83,7 +110,11 @@ class BLEConnectedDevice extends ConnectedDevice<BLEBluetoothDevice> {
     try {
       final n = _notify;
       if (n != null) {
-        await UniversalBle.unsubscribe(_deviceId, n.serviceUuid, n.characteristic.uuid);
+        BluetoothBleLog.d(
+          'unsubscribe id=$_deviceId service=${n.serviceUuid} char=${n.characteristic.uuid}',
+        );
+        await UniversalBle.unsubscribe(
+            _deviceId, n.serviceUuid, n.characteristic.uuid);
       }
       await UniversalBle.disconnect(_deviceId);
     } catch (_) {
@@ -116,8 +147,21 @@ class BLEConnectedDevice extends ConnectedDevice<BLEBluetoothDevice> {
     }
     _isWriting = true;
     try {
-      final withoutResponse = target.characteristic.properties
+      final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      final supportsWrite = target.characteristic.properties
+          .contains(CharacteristicProperty.write);
+      final supportsWithoutResponse = target.characteristic.properties
           .contains(CharacteristicProperty.writeWithoutResponse);
+
+      // iOS reliability encourages preferring "write with response" when available.
+      final withoutResponse =
+          supportsWithoutResponse && !(isIos && supportsWrite);
+      BluetoothBleLog.d(
+        'write id=$_deviceId len=${data.length} sendDone=$sendDone '
+        'withoutResponse=$withoutResponse ios=$isIos supportsWrite=$supportsWrite supportsWor=$supportsWithoutResponse '
+        'service=${target.serviceUuid} char=${target.characteristic.uuid} '
+        'hex=${BluetoothBleLog.hexPreview(data)}',
+      );
       await UniversalBle.write(
         _deviceId,
         target.serviceUuid,

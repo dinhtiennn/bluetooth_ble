@@ -8,7 +8,6 @@ class BLEBluetooth extends Fluetooth<UniversalBleProvider, BLEBluetoothDevice> {
   final Set<String> _notifiedDeviceIds = <String>{};
   static BLEBluetooth? _bleBluetooth;
   StreamSubscription<BleDevice>? _scanSubscription;
-  final bool _debugLog = true;
 
   ///唯一值使用mac地址还是uuid
   bool useMac = true;
@@ -89,20 +88,16 @@ class BLEBluetooth extends Fluetooth<UniversalBleProvider, BLEBluetoothDevice> {
       await UniversalBle.requestPermissions(withAndroidFineLocation: true);
     }
 
-    if (_debugLog) {
-      print('[bluetooth-ble] startDiscovery timeout=$timeout');
-    }
+    BluetoothBleLog.d('startDiscovery timeout=$timeout');
 
     _scanSubscription = UniversalBle.scanStream.listen((d) {
       final id = d.deviceId;
       if (_notifiedDeviceIds.contains(id)) return;
       _notifiedDeviceIds.add(id);
-      if (_debugLog) {
-        print(
-          '[bluetooth-ble] found name="${d.name}" id=$id rssi=${d.rssi}',
-        );
-      }
+      BluetoothBleLog.d('found name="${d.name}" id=$id rssi=${d.rssi}');
       _discoveryController.add(_Helpers.fromBleDevice(d));
+    }, onError: (e, st) {
+      BluetoothBleLog.d('scanStream error=$e');
     });
 
     await UniversalBle.startScan();
@@ -116,6 +111,7 @@ class BLEBluetooth extends Fluetooth<UniversalBleProvider, BLEBluetoothDevice> {
 
   @override
   Future<void> stopDiscovery() async {
+    BluetoothBleLog.d('stopDiscovery');
     try {
       await UniversalBle.stopScan();
     } catch (_) {}
@@ -132,22 +128,18 @@ class BLEBluetooth extends Fluetooth<UniversalBleProvider, BLEBluetoothDevice> {
 
     final originDevice = device.origin;
     final deviceId = originDevice.deviceId;
-    if (_debugLog) {
-      print('[bluetooth-ble] connect name="${device.name}" id=$deviceId');
-    }
+    BluetoothBleLog.d(
+        'connect name="${device.name}" id=$deviceId timeout=$timeout');
 
     await UniversalBle.connect(deviceId, timeout: timeout);
 
     final services = await UniversalBle.discoverServices(deviceId);
-    if (_debugLog) {
-      print('[bluetooth-ble] services count=${services.length}');
-      for (final s in services) {
-        print('[bluetooth-ble]  service ${s.uuid}');
-        for (final c in s.characteristics) {
-          // Avoid using enum.name (requires Dart >= 2.15)
-          final props = c.properties.map((e) => e.toString()).join(',');
-          print('[bluetooth-ble]   char ${c.uuid} props=[$props]');
-        }
+    BluetoothBleLog.d('services count=${services.length}');
+    for (final s in services) {
+      BluetoothBleLog.d(' service ${s.uuid}');
+      for (final c in s.characteristics) {
+        final props = c.properties.map((e) => e.toString()).join(',');
+        BluetoothBleLog.d('  char ${c.uuid} props=[$props]');
       }
     }
     final selection = _Helpers.selectCharacteristics(
@@ -159,12 +151,10 @@ class BLEBluetooth extends Fluetooth<UniversalBleProvider, BLEBluetoothDevice> {
 
     final write = selection.write;
     final notify = selection.notify;
-    if (_debugLog) {
-      print(
-        '[bluetooth-ble] selected write=${write?.characteristic.uuid}@${write?.serviceUuid} '
-        'notify=${notify?.characteristic.uuid}@${notify?.serviceUuid}',
-      );
-    }
+    BluetoothBleLog.d(
+      'selected write=${write?.characteristic.uuid}@${write?.serviceUuid} '
+      'notify=${notify?.characteristic.uuid}@${notify?.serviceUuid}',
+    );
 
     if (write == null && notify == null) {
       throw Exception(
@@ -184,6 +174,41 @@ class BLEBluetooth extends Fluetooth<UniversalBleProvider, BLEBluetoothDevice> {
 
 class _Helpers {
   static String _norm(String s) => s.toLowerCase().replaceAll('-', '');
+
+  static bool _looksLikeIsscService(String serviceUuid) {
+    // Many BLE printers expose an "ISSC" UART-like service:
+    // 49535343-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    final su = _norm(serviceUuid);
+    return su.startsWith('49535343');
+  }
+
+  static bool _looksLikeIsscChar(String charUuid) {
+    final cu = _norm(charUuid);
+    return cu.startsWith('49535343');
+  }
+
+  static bool _looksLikeUartWriteChar(String charUuid) {
+    final cu = _norm(charUuid);
+    // Common BLE serial/UART write characteristics seen in printers/modules:
+    // - HM-10 / many printers: FFE1
+    // - Nordic UART: 6E400002 (TX)
+    // - Some vendors: FFF1/FFF2
+    return _looksLikeIsscChar(charUuid) ||
+        cu.endsWith('ffe1') ||
+        cu.endsWith('fff1') ||
+        cu.endsWith('fff2') ||
+        cu.contains('6e400002');
+  }
+
+  static bool _looksLikeUartService(String serviceUuid) {
+    final su = _norm(serviceUuid);
+    // Common BLE serial/UART services:
+    // - HM-10 / many printers: FFE0
+    // - Nordic UART: 6E400001
+    return _looksLikeIsscService(serviceUuid) ||
+        su.endsWith('ffe0') ||
+        su.contains('6e400001');
+  }
 
   static BLEBluetoothDevice fromBleDevice(BleDevice device) {
     final id = device.deviceId;
@@ -229,6 +254,24 @@ class _Helpers {
       c.properties.contains(CharacteristicProperty.notify) ||
       c.properties.contains(CharacteristicProperty.indicate);
 
+  static int _writeScore(
+    String serviceUuid,
+    BleCharacteristic c, {
+    required bool serviceHasNotifiable,
+  }) {
+    var score = 0;
+    if (_looksLikeIsscService(serviceUuid)) score += 200;
+    if (_looksLikeIsscChar(c.uuid)) score += 200;
+    if (_looksLikeUartWriteChar(c.uuid)) score += 100;
+    if (_looksLikeUartService(serviceUuid)) score += 50;
+    if (serviceHasNotifiable) score += 20;
+    if (c.properties.contains(CharacteristicProperty.writeWithoutResponse)) {
+      score += 15;
+    }
+    if (c.properties.contains(CharacteristicProperty.write)) score += 10;
+    return score;
+  }
+
   static _CharacteristicSelection selectCharacteristics(
     List<BleService> services, {
     required List<AllowService>? allowedServices,
@@ -243,9 +286,15 @@ class _Helpers {
     BleQualifiedCharacteristic? matchedWritable;
     BleQualifiedCharacteristic? matchedNotifiable;
 
+    BleQualifiedCharacteristic? bestWritable;
+    var bestWritableScore = -1;
+    BleQualifiedCharacteristic? bestNotifySameService;
+
     for (final s in services) {
       final serviceUuid = s.uuid;
       if (!_serviceAllowed(serviceUuid, allowedServices)) continue;
+      final serviceHasNotifiable =
+          s.characteristics.any((c) => _isNotifiable(c));
       for (final c in s.characteristics) {
         final cu = _norm(c.uuid);
         if (_isWritable(c) && firstWritable == null) {
@@ -262,6 +311,28 @@ class _Helpers {
           if (_isNotifiable(c) && matchedNotifiable == null) {
             matchedNotifiable = BleQualifiedCharacteristic(serviceUuid, c);
           }
+          continue;
+        }
+
+        // Heuristic best-pick (when no explicit allowedCharacteristic):
+        // prefer UART-like write characteristic and prefer notify char in the same service.
+        if (wantedChar == null && _isWritable(c)) {
+          final score = _writeScore(
+            serviceUuid,
+            c,
+            serviceHasNotifiable: serviceHasNotifiable,
+          );
+          if (score > bestWritableScore) {
+            bestWritableScore = score;
+            bestWritable = BleQualifiedCharacteristic(serviceUuid, c);
+            final notifyChar = s.characteristics.firstWhere(
+              (cc) => _isNotifiable(cc),
+              orElse: () => c,
+            );
+            bestNotifySameService = _isNotifiable(notifyChar)
+                ? BleQualifiedCharacteristic(serviceUuid, notifyChar)
+                : null;
+          }
         }
       }
     }
@@ -274,8 +345,11 @@ class _Helpers {
     }
 
     return _CharacteristicSelection(
-      write: firstWritable,
-      notify: firstNotifiable ?? firstWritable,
+      write: bestWritable ?? firstWritable,
+      notify: bestNotifySameService ??
+          firstNotifiable ??
+          bestWritable ??
+          firstWritable,
     );
   }
 }
